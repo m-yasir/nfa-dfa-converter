@@ -6,7 +6,7 @@ let alphabetSet = [],
   states = {};
 /** @type {Boolean} */
 let isError = false;
-/** @type {Array<Array<String>>} */
+/** @type {Object} */
 let dfaTable = {};
 /** END */
 let initial = "",
@@ -55,11 +55,18 @@ $("#finalField").on("input", e => {
   finalStates = e.target.value.split(" ");
 });
 
-/** END **/
+/**
+ * @param {Event} e 
+ */
+function handleFiInput(e) {
+  e.target.value = replaceByFi(e.target.value);
+}
 
 //
-// EVENT HANDLERS
+// ***** EVENT HANDLERS END *****
 //
+
+// TODO: check for empty string and put Fi/N automatically ?
 
 /**
  * @returns {Array<String>} returns array of states' keys
@@ -78,10 +85,78 @@ function processNFA() {
   return statesArr;
 }
 
+/**
+ * 
+ * @param {Array<String>} dfaStates
+ * @returns {void} 
+ */
+function generateDFATable(dfaStates = []) {
+  if (!dfaStates.length) return;
+  const tBody = $("#dfaTbody");
+  $("#dfaTable").css("display", "table");
+  alphabetSet.forEach(el => {
+    $("#dfaHeader").append(`<th>δ(Q , ${el})</th>`);
+  });
+  for (let key in dfaTable) {
+    tBody.html(
+      (i, origHTML) =>
+        origHTML +
+        `
+      <tr>
+        <td>{ ${key} }</td>
+        ${getDFAcells(dfaTable[key])}
+      </tr>
+      `
+    );
+  }
+  /** @type {Array<Array<String>>} */
+  const fStates = [];
+  dfaStates.forEach(el => {
+    let arr = el.trim().split(",");
+    if (arr.length && isSubset(arr, finalStates) || isSubset(finalStates, arr)) {
+      fStates.push(`{ ${arr} }`);
+    }
+  });
+  // TODO: Better Fi state handling
+  $("#dfaInfo").html(`
+  <label class="label"><b>Initial State:</b> </label><p style="display: inline; margin: 10px;">{ ${initial} }</p><br />
+  <label class="label"><b>Final States:</b> </label><p style="display: inline; margin: 10px;">${fStates.length ? "[ " + fStates.reduce((a,b) => a + ", " + b) + " ]" : "None"}</p>
+  `);
+}
+
+/**
+ * @param {Array<Array<String>>} stateTransitions
+ * @returns {String} - string contains HTML Elements namely "td"s
+ */
+function getDFAcells(stateTransitions = []) {
+  let result = "";
+  stateTransitions.forEach(el => {
+    result += `<td>{${el}}</td>`;
+  });
+  return result;
+}
+
 // TODO: Determine why there's one extra iteration after all states are added?
 // TODO: Add Support for Lambda/Epsilon Transition Tables
 // TODO: Break Conversion into related functions/procedures
+//             ______
+//            |     |
+//            |     |
+//          _|     |_
+//          \       /
+//          \     /
+//          \   /
+//          \ /
+//          \/
+/**         
+ * The Actual function that contains the logic to convert an NFA table to DFA :)
+ * @returns {void}
+ */
 function convertToDFA() {
+  if (!initial || !finalStates.length) {
+    alert("Please set initial and finalStates");
+    return;
+  }
   const statesArr = processNFA();
   // copy first transition
   dfaTable[[statesArr[0]]] = states[statesArr[0]];
@@ -98,7 +173,7 @@ function convertToDFA() {
     key = dfaTable[keys[keys.length - 1]];
     isInsert = false;
     for (let j = 0; j < alphabetSet.length; j++) {
-      if (dfaTable[key[j]] || key[j].includes("N")) continue;
+      if (dfaTable[key[j]] || key[j].includes("Φ")) continue;
       isInsert = true;
       dfaTable[key[j]] = [];
       for (let z = 0; z < alphabetSet.length; z++) {
@@ -107,7 +182,7 @@ function convertToDFA() {
           item = key[j][k];
           let tempState = states[item];
           for (let x = 0; x < tempState[z].length; x++) {
-            if (tempState[z][x] === "N") continue;
+            if (tempState[z][x] === "Φ") continue;
             rSet.add(tempState[z][x]);
           }
         }
@@ -116,8 +191,8 @@ function convertToDFA() {
       }
     }
   } while (isInsert);
+  generateDFATable(keys);
   console.log(dfaTable);
-  debugger;
 }
 
 function hasKeys(key) {
@@ -168,7 +243,7 @@ function generateStatesTable(states) {
  * @returns {void}
  */
 function addStates(state) {
-  $("tbody").html(
+  $("#nfaTbody").html(
     (i, prevHTML) =>
       prevHTML +
       `
@@ -181,6 +256,12 @@ function addStates(state) {
 }
 
 /**
+ * @param {String} string 
+ */
+function replaceByFi(string) {
+  return string.replace(/N/g, "Φ");
+}
+/**
  *
  * @param {String} id - Takes in id for states
  */
@@ -188,7 +269,7 @@ function addStates(state) {
 function generateFieldCells(state) {
   let fields = "";
   for (let i = 0; i < alphabetSet.length; i++) {
-    fields += `<td><input style="width:100px" id=${state}-${i} /></td>`;
+    fields += `<td><input style="width:100px" id=${state}-${i} oninput="handleFiInput(event)" /></td>`;
   }
   return fields;
 }
@@ -206,6 +287,12 @@ function appendAlphabets(alphabets) {
     (i, origText) =>
       origText + "{ " + alphabets.reduce((a, b) => a + ", " + b) + " }"
   );
+}
+
+// HELPERS
+
+function isSubset(set, subset) {
+  return !subset.some(val => set.indexOf(val) === -1);
 }
 
 /** END **/

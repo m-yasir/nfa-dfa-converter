@@ -40,7 +40,7 @@
         }
 
         th {
-            padding: 10px
+            padding: 10px;
         }
 
         td {
@@ -86,8 +86,8 @@
     <p>KEY: 
         <ul>
             <li>Multiple input is always space separated.</li>
-            <li>Use N for Fi.</li>
-            <li>Sir it's on you to insert correct input for now, the program is extendible.</li>
+            <li>Use N for inserting Fi.</li>
+            <li>Not Every Case or Error has been handling, Correct input is advised!, the program is extendible.</li>
         </ul>
     </p>
     <div id="alphabetForm">
@@ -107,11 +107,11 @@
         </div>
         <div style="display:block;">
             <div>
-                <label class="label" style="display:block">Initial State:</label>
+                <label class="label" style="display:block;font-weight: bold">Initial State:</label>
                 <input id="initialField" placeholder="One Only" />
             </div>
             <div>
-                <label class="label" style="display:block">Final States: </label>
+                <label class="label" style="display:block; font-weight: bold">Final States: </label>
                 <input id="finalField" placeholder="Multiple space separated" />
             </div>
         </div>
@@ -121,10 +121,23 @@
                     <th>States</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="nfaTbody">
             </tbody>
         </table>
         <button type="button" class="button" onClick=convertToDFA()>Convert to DFA</button>
+        <div id="dfaInfo">
+
+        </div>
+        <table id="dfaTable" style="display:none;">
+            <thead>
+                <tr id="dfaHeader">
+                    <th>States</th>
+                </tr>
+            </thead>
+            <tbody id="dfaTbody">
+            </tbody>
+        </table>
+        <button class="button" style="display:block" onclick="window.location.reload()">Reload Page</button>
     </div>
     <!-- </div> -->
     <script src="./jquery.js"></script>
