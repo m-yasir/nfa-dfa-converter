@@ -81,28 +81,33 @@ function processNFA() {
 function convertToDFA() {
   const statesArr = processNFA();
   // copy first transition
-  dfaTable[new Array(statesArr[0])] = states[statesArr[0]];
+  dfaTable[[statesArr[0]]] = states[statesArr[0]];
 
   let rSet = new Set();
-  //   do {
-  key = states[statesArr[0]];
   let isInsert = false;
-  for (let j = 0, p = 0; j < alphabetSet.length; j++) {
-    rSet.clear();
-    p = 0;
-    if (dfaTable[key[j]] || key[j].includes("N")) continue;
-    isInsert = true;
-    dfaTable[key[j]] = [];
-    for (let k = 0, item = null; k < key[j].length; k++) {
-      item = key[j][k];
-      let tempState = states[item];
-      for (let x = 0; x < tempState[k].length; x++) {
-        rSet.add(tempState[k][x]);
+  // do {
+    let keys = Object.keys(dfaTable);
+    key = dfaTable[keys[keys.length - 1]];
+    isInsert = false;
+    for (let j = 0; j < alphabetSet.length; j++) {
+      if (dfaTable[key[j]] || key[j].includes("N")) continue;
+      isInsert = true;
+      dfaTable[key[j]] = [];
+      for (let z = 0; z < alphabetSet.length; z++) {
+        rSet.clear();
+        for (let k = 0, item = null; k < key[j].length; k++) {
+          item = key[j][k];
+          let tempState = states[item];
+          for (let x = 0; x < tempState[z].length; x++) {
+            if (tempState[z][x] === "N") continue;
+            rSet.add(tempState[z][x]);
+          }
+        }
+        let arr = [...rSet];
+        dfaTable[key[j]].push(arr.sort());
       }
     }
-    dfaTable[key[j]].push(Array.from(rSet));
-  }
-  //   } while (isInsert);
+  // } while (isInsert);
   console.log(dfaTable);
   debugger;
 }
@@ -133,7 +138,7 @@ addAlphabets = e => {
 function handleStateInput() {
   const field = $("#statesInput"),
     value = field.val().trim();
-  if (!value) return;
+  if (!value || states[value]) return;
   addStates(value);
   if (value) states[value] = [];
   field.val("");
