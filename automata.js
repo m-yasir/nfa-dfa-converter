@@ -78,15 +78,23 @@ function processNFA() {
   return statesArr;
 }
 
+// TODO: Determine why there's one extra iteration after all states are added?
+// TODO: Add Support for Lambda/Epsilon Transition Tables
+// TODO: Break Conversion into related functions/procedures
 function convertToDFA() {
   const statesArr = processNFA();
   // copy first transition
   dfaTable[[statesArr[0]]] = states[statesArr[0]];
-
+  // setup a set to be used for unions
+  /** @type {Set} */
   let rSet = new Set();
-  let isInsert = false;
-  // do {
-    let keys = Object.keys(dfaTable);
+
+  /** @type {Boolean} a boolean variable to break */
+  let isInsert = false, lastLength = -1;
+
+  let keys = null, key = null;
+  do {
+    keys = Object.keys(dfaTable);
     key = dfaTable[keys[keys.length - 1]];
     isInsert = false;
     for (let j = 0; j < alphabetSet.length; j++) {
@@ -107,7 +115,7 @@ function convertToDFA() {
         dfaTable[key[j]].push(arr.sort());
       }
     }
-  // } while (isInsert);
+  } while (isInsert);
   console.log(dfaTable);
   debugger;
 }
